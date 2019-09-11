@@ -1,0 +1,2 @@
+# mysensors
+lmsensors frontend
