@@ -1,0 +1,3 @@
+gcc -Wall mysensors.c -lpthread -lsensors -lncurses -o mysensors
+
+#gcc -Wall enumfeature.c -lsensors -o enumfeature
