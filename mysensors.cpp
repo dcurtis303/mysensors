@@ -40,7 +40,7 @@ void *PollKbd(void *info)
 		if (ch == 'D')
 			if (--cur_delay < 0)
 				cur_delay = num_delays - 1;
-	} while (ch != 'q');
+	} while (cptr->mRunning != false);
 
 	return (void *)0;
 }
@@ -72,7 +72,7 @@ void *Worker(void *info)
 
 int do_read_temps(char reset)
 {
-	const sensors_chip_name *chip;
+	sensors_chip_name const *chip;
 	sensors_feature const *feat;
 	sensors_subfeature const *subf;
 	int nr = 0, i;
@@ -96,7 +96,7 @@ int do_read_temps(char reset)
 
 			while ((subf = sensors_get_all_subfeatures(chip, feat, &s)) != 0)
 			{
-				//if (strcmp(subf->name, "temp1_input") == 0)
+				if (strcmp(subf->name, "temp1_input") == 0)
 				{
 					if (subf->flags & SENSORS_MODE_R)
 					{
@@ -270,7 +270,7 @@ void *LogThread(void *info)
 
 int enum_features(void)
 {
-    sensors_chip_name const * cn;
+    sensors_chip_name const *cn;
 	sensors_feature const *feat;
 	sensors_subfeature const *subf;
     int c = 0;
@@ -280,26 +280,20 @@ int enum_features(void)
 
     while ((cn = sensors_get_detected_chips(0, &c)) != 0) {
         while ((feat = sensors_get_features(cn, &f)) != 0) {
-			if (strcmp("temp1", feat->name) == 0) {
-				printf("found temp1 feature on %s\n", cn->prefix);
-			} else {
-				continue;
-			}
-
-            while ((subf = sensors_get_all_subfeatures(cn, feat, &s)) != 0) {
-				if (strcmp("temp1_input", subf->name) == 0) {
-					printf("found temp1_input subfeature on %s\n", cn->prefix);
-				} else {
-					continue;
-				}
-                double val;
-                if (subf->flags & SENSORS_MODE_R) {
-                    int rc = sensors_get_value(cn, subf->number, &val);
-                    if (rc < 0) {
-                        printf("err: %d", rc);
-                    } else {
-                        printf("%f", val);
-                    }
+			if (feat->type == SENSORS_FEATURE_TEMP) {
+	            while ((subf = sensors_get_all_subfeatures(cn, feat, &s)) != 0) {
+					if (subf->type == SENSORS_SUBFEATURE_TEMP_INPUT) {
+						double val;
+		                if (subf->flags & SENSORS_MODE_R) {
+    		                int rc = sensors_get_value(cn, subf->number, &val);
+            		
+					        if (rc < 0) {
+								printf("err: %d", rc);
+							} else {
+								printf("%f", val);
+							}
+						}
+					}
                 }
                 printf("\n");
             }
