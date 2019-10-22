@@ -1,2 +1,2 @@
 # mysensors
-lmsensors frontend
+lmsensors frontend using ncurses, includes min/max tracking
