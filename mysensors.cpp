@@ -8,7 +8,9 @@
 #include <ncurses.h>
 
 #include "mysensors.h"
+#include "track.h"
 
+Track track;
 struct Temps temps[MAX_SENSORS];
 struct CPU cpu[1];
 struct MEM mem[MAX_MEM_ITEMS];
@@ -72,14 +74,35 @@ void *Worker(void *info)
 
 int do_read_temps(char reset)
 {
+	int i;
+	int rc;
+	double val;
+
+	for (i = 0; i < track.getcount(); i++)
+	{
+		strncpy(temps[i].name, track[i].chip->prefix, CHIP_NAME_MAXLENGTH);
+
+		rc = sensors_get_value(track[i].chip, track[i].number, &val);
+		if (rc < 0)
+		{
+			temps[i].val = -1.0f;
+		}
+		else
+		{
+			temps[i].val = val;
+		}
+
+		if (temps[i].val < temps[i].low || temps[i].low == 0 || reset != 0)
+			temps[i].low = temps[i].val;
+		if (temps[i].val > temps[i].high || reset != 0)
+			temps[i].high = temps[i].val;
+	}
+	/*
 	sensors_chip_name const *chip;
 	sensors_feature const *feat;
 	sensors_subfeature const *subf;
-	int nr = 0, i;
 	int f = 0;
 	int s = 0;
-	int rc;
-	double val;
 
 	while ((chip = sensors_get_detected_chips(NULL, &nr)) != NULL)
 	{
@@ -101,9 +124,12 @@ int do_read_temps(char reset)
 					if (subf->flags & SENSORS_MODE_R)
 					{
 						rc = sensors_get_value(chip, subf->number, &val);
-						if (rc < 0) {
+						if (rc < 0)
+						{
 							temps[i].val = -1.0f;
-						} else {
+						}
+						else
+						{
 							temps[i].val = val;
 						}
 
@@ -116,8 +142,9 @@ int do_read_temps(char reset)
 			}
 		}
 	}
+*/
 
-	return nr;
+	return i;
 }
 
 void do_read_cpu(void)
@@ -268,41 +295,6 @@ void *LogThread(void *info)
 	return (void *)0;
 }
 
-int enum_features(void)
-{
-    sensors_chip_name const *cn;
-	sensors_feature const *feat;
-	sensors_subfeature const *subf;
-    int c = 0;
-	int f = 0;
-	int s = 0;
-
-
-    while ((cn = sensors_get_detected_chips(0, &c)) != 0) {
-        while ((feat = sensors_get_features(cn, &f)) != 0) {
-			if (feat->type == SENSORS_FEATURE_TEMP) {
-	            while ((subf = sensors_get_all_subfeatures(cn, feat, &s)) != 0) {
-					if (subf->type == SENSORS_SUBFEATURE_TEMP_INPUT) {
-						double val;
-		                if (subf->flags & SENSORS_MODE_R) {
-    		                int rc = sensors_get_value(cn, subf->number, &val);
-            		
-					        if (rc < 0) {
-								printf("err: %d", rc);
-							} else {
-								printf("%f", val);
-							}
-						}
-					}
-                }
-                printf("\n");
-            }
-        }
-    }
-
-    return 0;
-}
-
 int main(void)
 {
 	pthread_t workThread, pollThread;
@@ -313,7 +305,7 @@ int main(void)
 	sensors_init(conffile);
 	fclose(conffile);
 
-	enum_features();
+	track.getchip();
 	printf("\nPress <enter> to continue...");
 	getchar();
 
