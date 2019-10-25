@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "track.h"
 
 void Track::getchip(void)
@@ -15,6 +17,9 @@ void Track::getchip(void)
             if (feat->type != SENSORS_FEATURE_TEMP)
                 continue;
 
+            if (strncmp("temp1", feat->name, 5) != 0)
+                continue;
+
             sensors_subfeature const *subf;
             int s = 0;
 
@@ -23,33 +28,16 @@ void Track::getchip(void)
                 if (subf->type != SENSORS_SUBFEATURE_TEMP_INPUT)
                     continue;
 
-                printf("%s:%s:%s:%d = ", 
-                    cn->prefix, feat->name, subf->name, subf->number);
-
                 addtrack(cn, subf->number);
-
-                double val;
-                if (subf->flags & SENSORS_MODE_R)
-                {
-                    int rc = sensors_get_value(cn, subf->number, &val);
-                    if (rc < 0)
-                    {
-                        printf("err: %d", rc);
-                    }
-                    else
-                    {
-                        printf("%f", val);
-                    }
-                }
-                printf("\n");
             }
         }
     }
 }
 
 void Track::addtrack(const sensors_chip_name *cn, int number)
-{
-    items[itemcount].chip = cn;
-    items[itemcount].number = number;
-    itemcount++;
+{   
+    item *i = new item;
+    i->chip = cn;
+    i->number = number;
+    items.push_back(*i);
 }

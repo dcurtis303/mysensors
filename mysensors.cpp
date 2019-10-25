@@ -21,7 +21,7 @@ long long mstime, mstime_last;
 
 int delays[] = {250000, 500000, 1000000, 5000000};
 int num_delays = sizeof(delays) / sizeof(int);
-int cur_delay = 0;
+int cur_delay = 2;
 int delay;
 
 void *PollKbd(void *info)
@@ -97,52 +97,6 @@ int do_read_temps(char reset)
 		if (temps[i].val > temps[i].high || reset != 0)
 			temps[i].high = temps[i].val;
 	}
-	/*
-	sensors_chip_name const *chip;
-	sensors_feature const *feat;
-	sensors_subfeature const *subf;
-	int f = 0;
-	int s = 0;
-
-	while ((chip = sensors_get_detected_chips(NULL, &nr)) != NULL)
-	{
-		i = nr - 1;
-
-		//printf("Chip: %s/%s\n", chip->prefix, chip->path);
-		strncpy(temps[i].name, chip->prefix, CHIP_NAME_MAXLENGTH);
-		//if (temps[i].name[0] == 0)
-		//	strncpy(temps[i].name, chip->path, CHIP_NAME_MAXLENGTH);
-
-		while ((feat = sensors_get_features(chip, &f)) != 0)
-		{
-			//printf("%d: %s\n", f, feat->name);
-
-			while ((subf = sensors_get_all_subfeatures(chip, feat, &s)) != 0)
-			{
-				if (strcmp(subf->name, "temp1_input") == 0)
-				{
-					if (subf->flags & SENSORS_MODE_R)
-					{
-						rc = sensors_get_value(chip, subf->number, &val);
-						if (rc < 0)
-						{
-							temps[i].val = -1.0f;
-						}
-						else
-						{
-							temps[i].val = val;
-						}
-
-						if (temps[i].val < temps[i].low || temps[i].low == 0 || reset != 0)
-							temps[i].low = temps[i].val;
-						if (temps[i].val > temps[i].high || reset != 0)
-							temps[i].high = temps[i].val;
-					}
-				}
-			}
-		}
-	}
-*/
 
 	return i;
 }
@@ -290,11 +244,6 @@ void do_print(int num)
 	refresh();
 }
 
-void *LogThread(void *info)
-{
-	return (void *)0;
-}
-
 int main(void)
 {
 	pthread_t workThread, pollThread;
@@ -306,11 +255,8 @@ int main(void)
 	fclose(conffile);
 
 	track.getchip();
-	printf("\nPress <enter> to continue...");
-	getchar();
 
 	initscr();
-	//curs_set(0);
 	start_color();
 	init_pair(COLORPAIR_WHITE_BLACK, COLOR_WHITE, COLOR_BLACK);
 	init_pair(COLORPAIR_GREEN_BLACK, COLOR_GREEN, COLOR_BLACK);
