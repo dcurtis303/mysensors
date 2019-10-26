@@ -8,4 +8,4 @@ mysensors: mysensors.cpp mysensors.h track.cpp track.h
 	$(CC) $(CFLAGS) mysensors.cpp track.o -lpthread -lsensors -lncurses -o mysensors
 
 clean:
-	rm mysensors
+	rm mysensors *.o
