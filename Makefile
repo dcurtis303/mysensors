@@ -1,11 +1,11 @@
-all: mysensors enumfeature
+CC=g++
+CFLAGS=-g -Wall -Wextra -Wpedantic -Wno-deprecated
+
+all: mysensors
 
 mysensors: mysensors.cpp mysensors.h track.cpp track.h
-	g++ -g -Wall -c track.cpp
-	g++ -g -Wall mysensors.cpp track.o -lpthread -lsensors -lncurses -o mysensors
-
-enumfeature: enumfeature.c
-	gcc -Wall enumfeature.c -lsensors -o enumfeature
+	$(CC) $(CFLAGS) -c track.cpp
+	$(CC) $(CFLAGS) mysensors.cpp track.o -lpthread -lsensors -lncurses -o mysensors
 
 clean:
-	rm mysensors enumfeature
+	rm mysensors

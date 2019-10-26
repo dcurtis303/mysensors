@@ -8,7 +8,11 @@
 struct item
 {
     const sensors_chip_name *chip;
+    const sensors_subfeature *subf;
     int number;
+    double val;
+    double low;
+    double high;
 };
 
 class Track
@@ -16,8 +20,9 @@ class Track
     std::vector<item> items;
 
 public:
-    void getchip(void);
-    void addtrack(const sensors_chip_name *cn, int number);
+    void initchips(void);
+    void addtrack(const sensors_chip_name *, const sensors_subfeature *);
+
     int getcount() { return items.size(); };
     item &operator[](int index) { return items[index]; };
 };

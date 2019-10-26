@@ -11,7 +11,7 @@
 #include "track.h"
 
 Track track;
-struct Temps temps[MAX_SENSORS];
+
 struct CPU cpu[1];
 struct MEM mem[MAX_MEM_ITEMS];
 
@@ -19,7 +19,7 @@ struct timeval start_timeval;
 struct timeval cur_timeval;
 long long mstime, mstime_last;
 
-int delays[] = {250000, 500000, 1000000, 5000000};
+int delays[] = {250000, 500000, 1000000, 2500000};
 int num_delays = sizeof(delays) / sizeof(int);
 int cur_delay = 2;
 int delay;
@@ -50,15 +50,13 @@ void *PollKbd(void *info)
 void *Worker(void *info)
 {
 	struct Common *cptr = (struct Common *)info;
-	int num_sensors;
 
-	do
+	while (cptr->mRunning != false)
 	{
-
-		num_sensors = do_read_temps(cptr->mReset);
+		do_read_temps(cptr->mReset);
 		do_read_cpu();
 		do_read_mem();
-		do_print(num_sensors);
+		do_print();
 
 		if (cptr->mReset != 0)
 		{
@@ -67,12 +65,12 @@ void *Worker(void *info)
 		}
 
 		usleep(delays[cur_delay]);
-	} while (cptr->mRunning != false);
+	};
 
 	return (void *)0;
 }
 
-int do_read_temps(char reset)
+void do_read_temps(char reset)
 {
 	int i;
 	int rc;
@@ -80,25 +78,18 @@ int do_read_temps(char reset)
 
 	for (i = 0; i < track.getcount(); i++)
 	{
-		strncpy(temps[i].name, track[i].chip->prefix, CHIP_NAME_MAXLENGTH);
-
 		rc = sensors_get_value(track[i].chip, track[i].number, &val);
 		if (rc < 0)
-		{
-			temps[i].val = -1.0f;
-		}
+			track[i].val = -1.0f;
 		else
-		{
-			temps[i].val = val;
-		}
+			track[i].val = val;
 
-		if (temps[i].val < temps[i].low || temps[i].low == 0 || reset != 0)
-			temps[i].low = temps[i].val;
-		if (temps[i].val > temps[i].high || reset != 0)
-			temps[i].high = temps[i].val;
+		if (track[i].val < track[i].low || track[i].low == 0 || reset != 0)
+			track[i].low = track[i].val;
+
+		if (track[i].val > track[i].high || reset != 0)
+			track[i].high = track[i].val;
 	}
-
-	return i;
 }
 
 void do_read_cpu(void)
@@ -152,7 +143,7 @@ void do_read_mem(void)
 	fclose(fmem);
 }
 
-void do_print(int num)
+void do_print(void)
 {
 	static bool first_print = true;
 
@@ -163,22 +154,18 @@ void do_print(int num)
 	}
 	clear();
 
-	for (int i = 0; i < num; i++)
+	for (int i = 0; i < track.getcount(); i++)
 	{
 		attroff(A_BOLD);
 		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
-		printw("%s\t: ", temps[i].name);
-		if (i > MAX_SENSORS)
-			printw("MAX_SENSORS exceeded\n");
-		else
-		{
-			attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK) | A_BOLD);
-			printw("\t%*.1f", 4, temps[i].val);
-			attron(COLOR_PAIR(COLORPAIR_GREEN_BLACK));
-			printw("\t%*.1f", 4, temps[i].low);
-			attron(COLOR_PAIR(COLORPAIR_RED_BLACK));
-			printw("\t%*.1f\n", 4, temps[i].high);
-		}
+		printw("%s\t: ", track[i].chip->prefix);
+		printw("%s\t: ", track[i].subf->name);
+		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK) | A_BOLD);
+		printw("\t%*.1f", 4, track[i].val);
+		attron(COLOR_PAIR(COLORPAIR_GREEN_BLACK));
+		printw("\t%*.1f", 4, track[i].low);
+		attron(COLOR_PAIR(COLORPAIR_RED_BLACK));
+		printw("\t%*.1f\n", 4, track[i].high);
 	}
 
 	attroff(A_BOLD);
@@ -244,17 +231,62 @@ void do_print(int num)
 	refresh();
 }
 
+void enumfeature(void)
+{
+	FILE *conffile;
+	sensors_chip_name const *cn;
+	int c = 0;
+
+	conffile = fopen("/etc/sensors3.conf", "r");
+	sensors_init(conffile);
+
+	while ((cn = sensors_get_detected_chips(0, &c)) != 0)
+	{
+		printf("Chip: %s/%s\n", cn->prefix, cn->path);
+
+		sensors_feature const *feat;
+		int f = 0;
+
+		while ((feat = sensors_get_features(cn, &f)) != 0)
+		{
+			printf("%d: %s\n", f, feat->name);
+
+			sensors_subfeature const *subf;
+			int s = 0;
+
+			while ((subf = sensors_get_all_subfeatures(cn, feat, &s)) != 0)
+			{
+				printf("%d:%d:%s/%d = ", f, s, subf->name, subf->number);
+
+				double val;
+				if (subf->flags & SENSORS_MODE_R)
+				{
+					int rc = sensors_get_value(cn, subf->number, &val);
+					if (rc < 0)
+					{
+						printf("err: %d", rc);
+					}
+					else
+					{
+						printf("%f", val);
+					}
+				}
+				printf("\n");
+			}
+		}
+	}
+}
+
 int main(void)
 {
 	pthread_t workThread, pollThread;
 	struct Common common = {true, false};
-	FILE *conffile;
 
-	conffile = fopen("/etc/sensors3.conf", "r");
+	FILE *conffile = fopen("/etc/sensors3.conf", "r");
 	sensors_init(conffile);
 	fclose(conffile);
 
-	track.getchip();
+	track.initchips();
 
 	initscr();
 	start_color();
@@ -273,8 +305,6 @@ int main(void)
 	pthread_join(workThread, 0);
 
 	endwin();
-
-	printf("done\n");
 
 	return 0;
 }
