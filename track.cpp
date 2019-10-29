@@ -1,5 +1,4 @@
 #include <iostream>
-#include <iomanip>
 #include <cstdlib>
 #include <cstring>
 #include <libconfig.h++>
@@ -9,10 +8,8 @@
 using namespace std;
 using namespace libconfig;
 
-// This example reads the configuration file 'example.cfg' and displays
-// some of its contents.
 
-int test_read(void)
+int Track::readcfg(void)
 {
     Config cfg;
 
@@ -62,6 +59,8 @@ int test_read(void)
             cout << "chip: " << chip;
             cout << "\tsubf: " << subf;
             cout << "\tsubfnum: " << subfnum << endl;
+
+            addtrack(chip, subf);
         }
     }
     catch (const SettingNotFoundException &nfex)
@@ -77,7 +76,7 @@ int test_write(void)
     string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
     string cfgfilepath = HOME + "/.config/mysensors.cfg";
     static const char *output_file = cfgfilepath.c_str();
-    
+
     Config cfg;
 
     Setting &root = cfg.getRoot();
@@ -168,44 +167,42 @@ void enumfeature(void)
 
 void Track::initchips(void)
 {
-    test_read();
-    test_write();
-    // enumfeature();
+    readcfg();
     printf("press <ENTER> to continue...");
     getchar();
-
-    load();
 }
 
-void Track::load(void)
+void Track::addtrack(string chip, string subf)
 {
     sensors_chip_name const *cn;
     int c = 0;
 
     while ((cn = sensors_get_detected_chips(0, &c)) != 0)
     {
+        if (strcmp(chip.c_str(), cn->prefix) != 0)
+            continue;
+
         sensors_feature const *feat;
         int f = 0;
 
         while ((feat = sensors_get_features(cn, &f)) != 0)
         {
-            sensors_subfeature const *subf;
+            sensors_subfeature const *sf;
             int s = 0;
 
-            while ((subf = sensors_get_all_subfeatures(cn, feat, &s)) != 0)
-                addtrack(cn, subf);
+            while ((sf = sensors_get_all_subfeatures(cn, feat, &s)) != 0)
+            {
+                if (strcmp(subf.c_str(), sf->name) != 0)
+                    continue;
+         
+                item *i = new item;
+                i->chip = cn;
+                i->subf = sf;
+                i->val = 0.0f;
+                i->low = 0.0f;
+                i->high = 0.0f;
+                items.push_back(*i);
+            }
         }
     }
-}
-
-void Track::addtrack(const sensors_chip_name *cn, const sensors_subfeature *subf)
-{
-    item *i = new item;
-    i->chip = cn;
-    i->subf = subf;
-    i->number = subf->number;
-    i->val = 0.0f;
-    i->low = 0.0f;
-    i->high = 0.0f;
-    items.push_back(*i);
 }

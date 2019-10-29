@@ -2,6 +2,7 @@
 #define _TRACK_h_
 
 #include <vector>
+#include <string>
 
 #include <sensors/sensors.h>
 
@@ -9,7 +10,6 @@ struct item
 {
     const sensors_chip_name *chip;
     const sensors_subfeature *subf;
-    int number;
     double val;
     double low;
     double high;
@@ -21,9 +21,9 @@ class Track
 
 public:
     void initchips(void);
+    int readcfg(void);
     void load(void);
-    void addtrack(const sensors_chip_name *, const sensors_subfeature *);
-
+    void addtrack(std::string a, std::string b);
     int getcount() { return items.size(); };
     item &operator[](int index) { return items[index]; };
 };

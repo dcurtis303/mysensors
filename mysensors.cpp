@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include <sys/time.h>
 #include <sensors/sensors.h>
 #include <pthread.h>
@@ -78,7 +75,7 @@ void do_read_temps(char reset)
 
 	for (i = 0; i < track.getcount(); i++)
 	{
-		rc = sensors_get_value(track[i].chip, track[i].number, &val);
+		rc = sensors_get_value(track[i].chip, track[i].subf->number, &val);
 		if (rc < 0)
 			track[i].val = -1.0f;
 		else
