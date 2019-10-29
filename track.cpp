@@ -8,21 +8,30 @@
 using namespace std;
 using namespace libconfig;
 
-
 int Track::readcfg(void)
 {
     Config cfg;
 
+    string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
+    string cfgfilepath = HOME + "/.config/mysensors.cfg";
+
     try
     {
-        string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
-        string cfgfilepath = HOME + "/.config/mysensors.cfg";
         cfg.readFile(cfgfilepath.c_str());
     }
     catch (const FileIOException &fioex)
     {
-        std::cerr << "I/O error while reading file." << std::endl;
-        return (EXIT_FAILURE);
+        writecfg(cfgfilepath.c_str());
+
+        try
+        {
+            cfg.readFile(cfgfilepath.c_str());
+        }
+        catch (const exception &ex)
+        {
+            std::cerr << "FATAL error" << std::endl;
+            return (EXIT_FAILURE);
+        }
     }
     catch (const ParseException &pex)
     {
@@ -37,8 +46,6 @@ int Track::readcfg(void)
     {
         const Setting &books = root["sensors"];
         int count = books.getLength();
-
-        cout << "count of sensors: " << count << endl;
 
         for (int i = 0; i < count; ++i)
         {
@@ -56,10 +63,6 @@ int Track::readcfg(void)
             if (!(book.lookupValue("subfnum", subfnum)))
                 continue;
 
-            cout << "chip: " << chip;
-            cout << "\tsubf: " << subf;
-            cout << "\tsubfnum: " << subfnum << endl;
-
             addtrack(chip, subf);
         }
     }
@@ -71,12 +74,8 @@ int Track::readcfg(void)
     return (EXIT_SUCCESS);
 }
 
-int test_write(void)
+int Track::writecfg(const char *output_file)
 {
-    string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
-    string cfgfilepath = HOME + "/.config/mysensors.cfg";
-    static const char *output_file = cfgfilepath.c_str();
-
     Config cfg;
 
     Setting &root = cfg.getRoot();
@@ -107,7 +106,6 @@ int test_write(void)
         }
     }
 
-    // Write out the new configuration.
     try
     {
         cfg.writeFile(output_file);
@@ -165,13 +163,6 @@ void enumfeature(void)
     }
 }
 
-void Track::initchips(void)
-{
-    readcfg();
-    printf("press <ENTER> to continue...");
-    getchar();
-}
-
 void Track::addtrack(string chip, string subf)
 {
     sensors_chip_name const *cn;
@@ -194,7 +185,7 @@ void Track::addtrack(string chip, string subf)
             {
                 if (strcmp(subf.c_str(), sf->name) != 0)
                     continue;
-         
+
                 item *i = new item;
                 i->chip = cn;
                 i->subf = sf;
@@ -205,4 +196,9 @@ void Track::addtrack(string chip, string subf)
             }
         }
     }
+}
+
+void Track::initchips(void)
+{
+    readcfg();
 }

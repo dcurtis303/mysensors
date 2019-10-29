@@ -22,6 +22,7 @@ class Track
 public:
     void initchips(void);
     int readcfg(void);
+    int writecfg(const char *);
     void load(void);
     void addtrack(std::string a, std::string b);
     int getcount() { return items.size(); };

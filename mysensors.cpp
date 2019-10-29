@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <sys/time.h>
+
 #include <sensors/sensors.h>
 #include <pthread.h>
 #include <ncurses.h>
@@ -16,7 +17,7 @@ struct timeval start_timeval;
 struct timeval cur_timeval;
 long long mstime, mstime_last;
 
-int delays[] = {250000, 500000, 1000000, 2500000};
+int delays[] = {125000, 250000, 500000, 1000000, 3000000};
 int num_delays = sizeof(delays) / sizeof(int);
 int cur_delay = 2;
 int delay;
@@ -151,27 +152,6 @@ void do_print(void)
 	}
 	clear();
 
-	for (int i = 0; i < track.getcount(); i++)
-	{
-		attroff(A_BOLD);
-		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
-		printw("%s\t:", track[i].chip->prefix);
-		printw("%s\t:", track[i].subf->name);
-		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK) | A_BOLD);
-		printw("\t%*.1f", 4, track[i].val);
-		attron(COLOR_PAIR(COLORPAIR_GREEN_BLACK));
-		printw("\t%*.1f", 4, track[i].low);
-		attron(COLOR_PAIR(COLORPAIR_RED_BLACK));
-		printw("\t%*.1f\n", 4, track[i].high);
-	}
-
-	attroff(A_BOLD);
-	attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
-
-	printw("time\t: ");
-	attron(A_BOLD);
-	printw("%ldms\n", mstime - mstime_last);
-
 	attroff(A_BOLD);
 	printw("up\t: ");
 	long diff = cur_timeval.tv_sec - start_timeval.tv_sec;
@@ -180,6 +160,13 @@ void do_print(void)
 	int sec = diff % 60;
 	attron(A_BOLD);
 	printw("%02d:%02d:%02d\n", hr, min, sec);
+
+	printw("time\t: ");
+	attron(A_BOLD);
+	printw("%ldns\n", delays[cur_delay]);//mstime - mstime_last);
+
+	attroff(A_BOLD);
+	printw("\t     U    N    S    I    I    I    I    S    G    G\n");
 
 	attroff(A_BOLD);
 	printw("%s\t: ", cpu[0].name);
@@ -222,6 +209,26 @@ void do_print(void)
 	printw("%*.1f%\n", 3, usage);
 
 	attroff(A_BOLD);
+	printw("-----------------------------------------------------------\n");
+
+	for (int i = 0; i < track.getcount(); i++)
+	{
+		attroff(A_BOLD);
+		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
+		printw("%s\t ", track[i].chip->prefix);
+		printw("%s\t:", track[i].subf->name);
+		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK) | A_BOLD);
+		printw("\t%5.1f", 4, track[i].val);
+		attron(COLOR_PAIR(COLORPAIR_GREEN_BLACK));
+		printw("\t%5.1f", 4, track[i].low);
+		attron(COLOR_PAIR(COLORPAIR_RED_BLACK));
+		printw("\t%5.1f\n", 4, track[i].high);
+	}
+
+	attroff(A_BOLD);
+	attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
+
+
 	printw("-----------------------------------------------------------\n"
 		   "press 'q' to quit\n      'r' to reset\n      'd' to change delay\n");
 
