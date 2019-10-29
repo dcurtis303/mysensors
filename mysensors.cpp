@@ -17,7 +17,7 @@ struct timeval start_timeval;
 struct timeval cur_timeval;
 long long mstime, mstime_last;
 
-int delays[] = {125000, 250000, 500000, 1000000, 3000000};
+int delays[] = {50000, 125000, 250000, 500000, 1000000, 3000000};
 int num_delays = sizeof(delays) / sizeof(int);
 int cur_delay = 2;
 int delay;
@@ -161,7 +161,8 @@ void do_print(void)
 	attron(A_BOLD);
 	printw("%02d:%02d:%02d\n", hr, min, sec);
 
-	printw("time\t: ");
+	attroff(A_BOLD);
+	printw("interval: ");
 	attron(A_BOLD);
 	printw("%ldns\n", delays[cur_delay]);//mstime - mstime_last);
 
