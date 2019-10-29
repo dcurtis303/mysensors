@@ -158,8 +158,8 @@ void do_print(void)
 	{
 		attroff(A_BOLD);
 		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
-		printw("%s\t: ", track[i].chip->prefix);
-		printw("%s\t: ", track[i].subf->name);
+		printw("%s\t:", track[i].chip->prefix);
+		printw("%s\t:", track[i].subf->name);
 		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK) | A_BOLD);
 		printw("\t%*.1f", 4, track[i].val);
 		attron(COLOR_PAIR(COLORPAIR_GREEN_BLACK));
@@ -231,52 +231,6 @@ void do_print(void)
 	refresh();
 }
 
-void enumfeature(void)
-{
-	FILE *conffile;
-	sensors_chip_name const *cn;
-	int c = 0;
-
-	conffile = fopen("/etc/sensors3.conf", "r");
-	sensors_init(conffile);
-
-	while ((cn = sensors_get_detected_chips(0, &c)) != 0)
-	{
-		printf("Chip: %s/%s\n", cn->prefix, cn->path);
-
-		sensors_feature const *feat;
-		int f = 0;
-
-		while ((feat = sensors_get_features(cn, &f)) != 0)
-		{
-			printf("%d: %s\n", f, feat->name);
-
-			sensors_subfeature const *subf;
-			int s = 0;
-
-			while ((subf = sensors_get_all_subfeatures(cn, feat, &s)) != 0)
-			{
-				printf("%d:%d:%s/%d = ", f, s, subf->name, subf->number);
-
-				double val;
-				if (subf->flags & SENSORS_MODE_R)
-				{
-					int rc = sensors_get_value(cn, subf->number, &val);
-					if (rc < 0)
-					{
-						printf("err: %d", rc);
-					}
-					else
-					{
-						printf("%f", val);
-					}
-				}
-				printf("\n");
-			}
-		}
-	}
-}
-
 int main(void)
 {
 	pthread_t workThread, pollThread;
@@ -301,8 +255,10 @@ int main(void)
 
 	pthread_create(&pollThread, 0, PollKbd, &common);
 	pthread_create(&workThread, 0, Worker, &common);
+
+	// only wait for polling to return
 	pthread_join(pollThread, 0);
-	pthread_join(workThread, 0);
+	//pthread_join(workThread, 0);
 
 	endwin();
 

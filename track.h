@@ -21,6 +21,7 @@ class Track
 
 public:
     void initchips(void);
+    void load(void);
     void addtrack(const sensors_chip_name *, const sensors_subfeature *);
 
     int getcount() { return items.size(); };
