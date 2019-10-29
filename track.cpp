@@ -74,7 +74,10 @@ int test_read(void)
 
 int test_write(void)
 {
-    static const char *output_file = "newconfig.cfg";
+    string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
+    string cfgfilepath = HOME + "/.config/mysensors.cfg";
+    static const char *output_file = cfgfilepath.c_str();
+    
     Config cfg;
 
     Setting &root = cfg.getRoot();
