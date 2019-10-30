@@ -76,7 +76,6 @@ int Track::writecfg(const char *output_file)
 
     Setting &root = cfg.getRoot();
 
-    // Add some settings to the configuration.
     Setting &sensors = root.add("sensors", Setting::TypeList);
 
     sensors_chip_name const *cn;
