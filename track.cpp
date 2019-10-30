@@ -52,15 +52,11 @@ int Track::readcfg(void)
             const Setting &book = books[i];
 
             string chip, subf;
-            int subfnum;
 
             if (!(book.lookupValue("chip", chip)))
                 continue;
 
             if (!(book.lookupValue("subf", subf)))
-                continue;
-
-            if (!(book.lookupValue("subfnum", subfnum)))
                 continue;
 
             addtrack(chip, subf);
@@ -101,7 +97,6 @@ int Track::writecfg(const char *output_file)
                 Setting &g1 = sensors.add(Setting::TypeGroup);
                 g1.add("chip", Setting::TypeString) = cn->prefix;
                 g1.add("subf", Setting::TypeString) = subf->name;
-                g1.add("subfnum", Setting::TypeInt) = subf->number;
             }
         }
     }

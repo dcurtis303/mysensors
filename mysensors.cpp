@@ -20,7 +20,6 @@ long long mstime, mstime_last;
 int delays[] = {50000, 125000, 250000, 500000, 1000000, 3000000};
 int num_delays = sizeof(delays) / sizeof(int);
 int cur_delay = 2;
-int delay;
 
 void *PollKbd(void *info)
 {
@@ -164,7 +163,7 @@ void do_print(void)
 	attroff(A_BOLD);
 	printw("interval: ");
 	attron(A_BOLD);
-	printw("%ldns\n", delays[cur_delay]);//mstime - mstime_last);
+	printw("%ldns\n", delays[cur_delay]); //mstime - mstime_last);
 
 	attroff(A_BOLD);
 	printw("\t     U    N    S    I    I    I    I    S    G    G\n");
@@ -217,21 +216,22 @@ void do_print(void)
 		attroff(A_BOLD);
 		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
 		printw("%s\t ", track[i].chip->prefix);
+		move(getcury(stdscr), 10);
 		printw("%s\t:", track[i].subf->name);
+		move(getcury(stdscr), 24);
 		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK) | A_BOLD);
-		printw("\t%5.1f", 4, track[i].val);
+		printw("\t%6.1f", 4, track[i].val);
 		attron(COLOR_PAIR(COLORPAIR_GREEN_BLACK));
-		printw("\t%5.1f", 4, track[i].low);
+		printw("\t%6.1f", 4, track[i].low);
 		attron(COLOR_PAIR(COLORPAIR_RED_BLACK));
-		printw("\t%5.1f\n", 4, track[i].high);
+		printw("\t%6.1f\n", 4, track[i].high);
 	}
 
 	attroff(A_BOLD);
 	attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
 
-
 	printw("-----------------------------------------------------------\n"
-		   "press 'q' to quit\n      'r' to reset\n      'd' to change delay\n");
+		   "press 'q' to quit\n      'r' to reset\n      'd/D' to change delay\n");
 
 	refresh();
 }
@@ -253,8 +253,6 @@ int main(void)
 	init_pair(COLORPAIR_GREEN_BLACK, COLOR_GREEN, COLOR_BLACK);
 	init_pair(COLORPAIR_RED_BLACK, COLOR_RED, COLOR_BLACK);
 	init_pair(COLORPAIR_YELLOW_BLACK, COLOR_YELLOW, COLOR_BLACK);
-
-	delay = delays[cur_delay];
 
 	gettimeofday(&start_timeval, NULL);
 
