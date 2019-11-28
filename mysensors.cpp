@@ -170,7 +170,7 @@ void do_print(void)
 	printw("%ldns\n", delays[cur_delay]); //mstime - mstime_last);
 
 	attroff(A_BOLD);
-	printw("\t     U    N    S    I    I    I    I    S    G    G\n");
+	printw("\t    Us   Ni   Sy   Id   Iw   Ih   Is    S    G   Gn\n");
 
 	attroff(A_BOLD);
 	printw("%s\t: ", cpu[0].name);
