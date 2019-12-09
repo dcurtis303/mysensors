@@ -21,9 +21,12 @@ struct timeval start_timeval;
 struct timeval cur_timeval;
 long long mstime, mstime_last;
 
+WINDOW *mainWindow;
+int sensorListIndex = 0;
+
 int delays[] = {50000, 125000, 250000, 500000, 1000000, 3000000};
 int num_delays = sizeof(delays) / sizeof(int);
-int cur_delay = 2;
+int cur_delay = 5;
 
 void *PollKbd(void *info)
 {
@@ -33,6 +36,10 @@ void *PollKbd(void *info)
 	do
 	{
 		ch = getchar();
+		if (ch == 'k') // up arrow
+			sensorListIndex = sensorListIndex > 0 ? sensorListIndex - 1 : sensorListIndex;
+		if (ch == 'l') // down arrow
+			sensorListIndex = sensorListIndex < track.getcount() ? sensorListIndex + 1 : sensorListIndex;
 		if (ch == 'r')
 			cptr->mReset = true;
 		if (ch == 'q')
@@ -215,14 +222,15 @@ void do_print(void)
 	attroff(A_BOLD);
 	printw("-----------------------------------------------------------\n");
 
-	for (int i = 0; i < track.getcount(); i++)
+	int dy = getmaxy(mainWindow) - SENSOR_LINES + sensorListIndex;
+	for (int i = sensorListIndex; (i < dy) && (i < track.getcount()); i++)
 	{
 		attroff(A_BOLD);
 		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
 		printw("%s\t ", track[i].chip->prefix);
-		move(getcury(stdscr), 10);
+		move(getcury(mainWindow), 10);
 		printw("%s\t:", track[i].subf->name);
-		move(getcury(stdscr), 24);
+		move(getcury(mainWindow), 24);
 		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK) | A_BOLD);
 		printw("\t%6.1f", 4, track[i].val);
 		attron(COLOR_PAIR(COLORPAIR_GREEN_BLACK));
@@ -235,7 +243,9 @@ void do_print(void)
 	attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
 
 	printw("-----------------------------------------------------------\n"
-		   "press 'q' to quit\n      'r' to reset\n      'd/D' to change delay\n");
+		   "press  'q' to quit            'k' to scroll up\n"
+		   "       'r' to reset           'l' to scroll down\n"
+		   "     'd/D' to change delay\n");
 
 	refresh();
 }
@@ -251,7 +261,7 @@ int main(void)
 
 	track.initchips();
 
-	initscr();
+	mainWindow = initscr();
 	start_color();
 	init_pair(COLORPAIR_WHITE_BLACK, COLOR_WHITE, COLOR_BLACK);
 	init_pair(COLORPAIR_GREEN_BLACK, COLOR_GREEN, COLOR_BLACK);

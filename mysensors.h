@@ -1,6 +1,8 @@
 
 #define MAX_MEM_ITEMS 6 // only need first six values
 
+#define SENSOR_LINES 12 // lines excluded for sensor display
+
 #define	COLORPAIR_WHITE_BLACK	1
 #define	COLORPAIR_GREEN_BLACK	2
 #define	COLORPAIR_RED_BLACK		3
