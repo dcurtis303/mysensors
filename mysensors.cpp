@@ -17,6 +17,8 @@ Track track;
 struct CPU cpu[1];
 struct MEM mem[MAX_MEM_ITEMS];
 
+bool first_print = true;
+
 struct timeval start_timeval;
 struct timeval cur_timeval;
 long long mstime, mstime_last;
@@ -25,6 +27,7 @@ WINDOW *mainWindow;
 int sensorListIndex = 0;
 
 int delays[] = {50000, 125000, 250000, 500000, 1000000, 3000000};
+const char *dlyprt[] = {"50ms", "125ms", "250ms", "500ms", "1s", "3s"};
 int num_delays = sizeof(delays) / sizeof(int);
 int cur_delay = 5;
 
@@ -35,6 +38,8 @@ void *PollKbd(void *info)
 
 	do
 	{
+		do_print();
+		
 		ch = getchar();
 		if (ch == 'k') // up arrow
 			sensorListIndex = sensorListIndex > 0 ? sensorListIndex - 1 : sensorListIndex;
@@ -72,7 +77,8 @@ void *Worker(void *info)
 			cptr->mReset = 0;
 		}
 
-		usleep(delays[cur_delay]);
+		if (!first_print)
+			usleep(delays[cur_delay]);
 	};
 
 	return (void *)0;
@@ -153,28 +159,31 @@ void do_read_mem(void)
 
 void do_print(void)
 {
-	static bool first_print = true;
-
 	if (first_print)
 	{
 		first_print = false;
-		return;
+		//return;
 	}
 	clear();
 
 	attroff(A_BOLD);
 	printw("up\t: ");
 	long diff = cur_timeval.tv_sec - start_timeval.tv_sec;
+	diff += 87400 + 4400;
+	int day = diff / 3600 / 24;
 	int hr = diff / 3600;
+	int hrd = hr % 24;
 	int min = diff % 3600 / 60;
 	int sec = diff % 60;
 	attron(A_BOLD);
-	printw("%02d:%02d:%02d\n", hr, min, sec);
+	printw(" %02d:%02d:%02d  ", hr, min, sec);
+	printw("(%d %s, %d %s)\n", 
+		day, (day == 1 ? "day" : "days"), hrd, (hrd == 1 ? "hr" : "hrs"));
 
 	attroff(A_BOLD);
 	printw("interval: ");
 	attron(A_BOLD);
-	printw("%ldns\n", delays[cur_delay]); //mstime - mstime_last);
+	printw("%s\n", dlyprt[cur_delay]);
 
 	attroff(A_BOLD);
 	printw("\t    Us   Ni   Sy   Id   Iw   Ih   Is    S    G   Gn\n");
@@ -202,8 +211,8 @@ void do_print(void)
 	long t2 = cpu[0].user + cpu[0].nice + cpu[0].system + cpu[0].idle +
 			  cpu[0].iowait + cpu[0].irq + cpu[0].softirq + cpu[0].steal +
 			  cpu[0].guest + cpu[0].guest_nice;
-	long w1 = cpu[0].luser + cpu[0].lnice + cpu[0].lsystem;
-	long w2 = cpu[0].user + cpu[0].nice + cpu[0].system;
+	long w1 = cpu[0].luser + cpu[0].lsystem;
+	long w2 = cpu[0].user + cpu[0].system;
 	float wpd = (float)w2 - w1;
 	float tpd = (float)t2 - t1;
 	float usage = wpd / tpd * 100.0f;
@@ -270,8 +279,8 @@ int main(void)
 
 	gettimeofday(&start_timeval, NULL);
 
-	pthread_create(&pollThread, 0, PollKbd, &common);
 	pthread_create(&workThread, 0, Worker, &common);
+	pthread_create(&pollThread, 0, PollKbd, &common);
 
 	// only wait for polling to return
 	pthread_join(pollThread, 0);
