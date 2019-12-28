@@ -169,7 +169,6 @@ void do_print(void)
 	attroff(A_BOLD);
 	printw("up\t: ");
 	long diff = cur_timeval.tv_sec - start_timeval.tv_sec;
-	diff += 87400 + 4400;
 	int day = diff / 3600 / 24;
 	int hr = diff / 3600;
 	int hrd = hr % 24;
