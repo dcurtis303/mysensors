@@ -210,21 +210,19 @@ void do_print(void)
 	long t2 = cpu[0].user + cpu[0].nice + cpu[0].system + cpu[0].idle +
 			  cpu[0].iowait + cpu[0].irq + cpu[0].softirq + cpu[0].steal +
 			  cpu[0].guest + cpu[0].guest_nice;
-	long w1 = cpu[0].luser + cpu[0].lsystem;
-	long w2 = cpu[0].user + cpu[0].system;
-	float wpd = (float)w2 - w1;
 	float tpd = (float)t2 - t1;
-	float usage = wpd / tpd * 100.0f;
+	float uu = (cpu[0].user - cpu[0].luser) / tpd * 100.0f;
+	float us = (cpu[0].system - cpu[0].lsystem) / tpd * 100.0f;
 	attroff(A_BOLD);
 	attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
 	printw("cpu\t: ");
 	attron(A_BOLD);
-	printw("%*.1f%\n", 3, usage);
+	printw("%*.1f/%*.1f\n", 3, uu, us);
 	attroff(A_BOLD);
 
 	printw("mem\t: ");
 	attron(A_BOLD);
-	usage = (float)(mem[0].value - mem[2].value) / mem[0].value * 100.0f;
+	float usage = (float)(mem[0].value - mem[2].value) / mem[0].value * 100.0f;
 	printw("%*.1f%\n", 3, usage);
 
 	attroff(A_BOLD);
@@ -241,7 +239,7 @@ void do_print(void)
 		move(getcury(mainWindow), 24);
 		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK) | A_BOLD);
 		printw("\t%6.1f", 4, track[i].val);
-		attron(COLOR_PAIR(COLORPAIR_GREEN_BLACK));
+		attron(COLOR_PAIR(COLORPAIR_CYAN_BLACK));
 		printw("\t%6.1f", 4, track[i].low);
 		attron(COLOR_PAIR(COLORPAIR_RED_BLACK));
 		printw("\t%6.1f\n", 4, track[i].high);
@@ -275,6 +273,7 @@ int main(void)
 	init_pair(COLORPAIR_GREEN_BLACK, COLOR_GREEN, COLOR_BLACK);
 	init_pair(COLORPAIR_RED_BLACK, COLOR_RED, COLOR_BLACK);
 	init_pair(COLORPAIR_YELLOW_BLACK, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(COLORPAIR_CYAN_BLACK, COLOR_CYAN, COLOR_BLACK);
 
 	gettimeofday(&start_timeval, NULL);
 

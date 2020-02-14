@@ -7,6 +7,7 @@
 #define	COLORPAIR_GREEN_BLACK	2
 #define	COLORPAIR_RED_BLACK		3
 #define	COLORPAIR_YELLOW_BLACK	4
+#define	COLORPAIR_CYAN_BLACK	5
 
 struct CPU {
 	char name[8];
