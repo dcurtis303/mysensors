@@ -231,17 +231,16 @@ void do_print(void)
 	int dy = getmaxy(mainWindow) - SENSOR_LINES + sensorListIndex;
 	for (int i = sensorListIndex; (i < dy) && (i < track.getcount()); i++)
 	{
-		attroff(A_BOLD);
 		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
 		printw("%s\t ", track[i].chip->prefix);
 		move(getcury(mainWindow), 10);
 		printw("%s\t:", track[i].subf->name);
 		move(getcury(mainWindow), 24);
-		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK) | A_BOLD);
+		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
 		printw("\t%6.1f", 4, track[i].val);
 		attron(COLOR_PAIR(COLORPAIR_CYAN_BLACK));
 		printw("\t%6.1f", 4, track[i].low);
-		attron(COLOR_PAIR(COLORPAIR_RED_BLACK));
+		attron(COLOR_PAIR(COLORPAIR_YELLOW_BLACK));
 		printw("\t%6.1f\n", 4, track[i].high);
 	}
 
