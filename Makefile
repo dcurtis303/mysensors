@@ -4,10 +4,9 @@ LDFLAGS =
 LIBS = -lpthread -lsensors -lncurses -lconfig++
 
 BIN = mysensors
-BUILD_DIR = ./build
 
 SOURCES = $(wildcard src/*.cpp)
-OBJECTS = $(SOURCES:%.cpp=$(BUILD_DIR)/%.o)
+OBJECTS = $(SOURCES:%.cpp=%.o)
 DEPENDS = $(OBJECTS:%.o=%.d)
 
 all: $(BIN)
@@ -16,7 +15,8 @@ $(BIN): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 -include $(DEPENDS)
-$(BUILD_DIR)%.o : %.cpp
+
+%.o : %.cpp
 	$(CXX) $(CXXFLAGS) -MMD -c $< -o $@
 
 clean:
