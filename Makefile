@@ -9,8 +9,6 @@ SOURCES = $(wildcard src/*.cpp)
 OBJECTS = $(SOURCES:%.cpp=$(BUILDDIR)/%.o)
 DEPENDS = $(OBJECTS:%.o=%.d)
 
-all: $(BIN)
-
 $(BIN): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
 
