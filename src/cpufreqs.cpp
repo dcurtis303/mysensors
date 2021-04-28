@@ -32,7 +32,6 @@ void Cpufreqs::read(void)
 {
     int i = 0;    
     char buffer[1025];
-    double val;
 
     FILE *fcpu = fopen("/proc/cpuinfo", "r");
     do
