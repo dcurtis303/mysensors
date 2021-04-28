@@ -2,9 +2,6 @@
 #define _CPUFREQS_h_
 
 #include <vector>
-#include <string>
-
-#include <sensors/sensors.h>
 
 class Cpufreqs
 {

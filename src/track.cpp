@@ -1,7 +1,9 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
+
 #include <libconfig.h++>
+#include <sensors/sensors.h>
 
 #include "track.h"
 

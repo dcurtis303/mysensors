@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 
 #include "cpufreqs.h"
@@ -12,11 +13,11 @@ void Cpufreqs::init(void)
     elow = 10000.00;
     ehigh = 0.00;
 
-    char buffer[1024];
+    char buffer[1025];
     FILE *fcpu = fopen("/proc/cpuinfo", "r");
     do
     {
-        fscanf(fcpu, "%s\n", buffer);
+        fgets(buffer, 1024, fcpu);
         if (strstr(buffer, "MHz") != NULL)
             freqs.push_back(0.0f);
     } while (!feof(fcpu));

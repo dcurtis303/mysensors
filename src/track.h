@@ -4,8 +4,6 @@
 #include <vector>
 #include <string>
 
-#include <sensors/sensors.h>
-
 struct item
 {
     const sensors_chip_name *chip;

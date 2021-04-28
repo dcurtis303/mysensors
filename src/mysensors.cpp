@@ -1,7 +1,3 @@
-
-
-/* not sure how this code is really c++ */
-
 #include <unistd.h>
 #include <sys/time.h>
 
@@ -16,7 +12,9 @@
 
 extern Logger logger;
 
-#define K10TEMP1 10 // assumed index into tracker array for CPU temp
+ // assumed index into tracker array for CPU temp
+ // hacky, will add configuration file support
+#define K10TEMP1 10
 
 Track track;
 Cpufreqs cpufreqs;
@@ -37,7 +35,7 @@ int sensorListIndex = 0;
 int delays[] = {50000, 125000, 250000, 500000, 1000000, 3000000};
 const char *dlyprt[] = {"50ms", "125ms", "250ms", "500ms", "1s", "3s"};
 int num_delays = sizeof(delays) / sizeof(int);
-int cur_delay = 5;
+int cur_delay = 4;
 
 void *PollKbd(void *info)
 {
@@ -345,7 +343,6 @@ int main(void)
 
 	// only wait for polling to return
 	pthread_join(pollThread, 0);
-	//pthread_join(workThread, 0);
 
 	endwin();
 
