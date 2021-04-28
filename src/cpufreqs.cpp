@@ -39,11 +39,7 @@ void Cpufreqs::read(void)
     {
         fgets(buffer, 1024, fcpu);
         if (strstr(buffer, "MHz") != NULL)
-        {
-            sscanf(buffer, "cpu MHz		: %lf\n", &val);
-            freqs[i] = val;
-            i++;
-        }
+            sscanf(buffer, "cpu MHz		: %lf\n", &freqs[i++]);
     } while (!feof(fcpu));
     fclose(fcpu);
 }
