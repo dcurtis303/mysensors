@@ -344,6 +344,8 @@ int main(void)
 	// only wait for polling to return
 	pthread_join(pollThread, 0);
 
+	logger.debug("keyboard polling finished\n");
+
 	endwin();
 
 	return 0;

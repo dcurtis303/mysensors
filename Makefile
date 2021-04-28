@@ -12,14 +12,14 @@ DEPENDS = $(OBJECTS:%.o=%.d)
 all: $(BIN)
 
 $(BIN): $(OBJECTS)
-	mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
 
 -include $(DEPENDS)
 
 $(BUILDDIR)/%.o : %.cpp
-	mkdir -p $(@D)
+	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -MMD -c $< -o $@
 
 clean:
-	-rm -f $(OBJECTS) $(DEPENDS) $(BIN)
+	-rm -f $(BIN)
+	-rm -rf $(BUILDDIR)

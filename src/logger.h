@@ -3,7 +3,7 @@
 
 class Logger
 {
-    const char *logname = "mysensors.log";
+    const char *logname = "/tmp/mysensors.log";
 
 public:
     void init(void);
