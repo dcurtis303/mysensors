@@ -11,13 +11,21 @@
 
 #include "mysensors.h"
 #include "track.h"
+#include "cpufreqs.h"
+#include "logger.h"
+
+extern Logger logger;
+
+#define K10TEMP1 10 // assumed index into tracker array for CPU temp
 
 Track track;
+Cpufreqs cpufreqs;
 
 struct CPU cpu[1];
 struct MEM mem[MAX_MEM_ITEMS];
 
 bool first_print = true;
+bool recording = false;
 
 struct timeval start_timeval;
 struct timeval cur_timeval;
@@ -41,6 +49,10 @@ void *PollKbd(void *info)
 		do_print();
 		
 		ch = getchar();
+		if (ch == 'c')
+			logger.init();
+		if (ch == 'm')
+			recording = !recording;
 		if (ch == 'k') // up arrow
 			sensorListIndex = sensorListIndex > 0 ? sensorListIndex - 1 : sensorListIndex;
 		if (ch == 'l') // down arrow
@@ -69,7 +81,10 @@ void *Worker(void *info)
 		do_read_temps(cptr->mReset);
 		do_read_cpu();
 		do_read_mem();
+		do_read_cpufreq(cptr->mReset);
 		do_print();
+		if (recording)
+			do_print_to_log();
 
 		if (cptr->mReset != 0)
 		{
@@ -149,12 +164,37 @@ void do_read_cpu(void)
 	fclose(fstat);
 }
 
+void do_read_cpufreq(char reset)
+{
+	cpufreqs.read();
+	cpufreqs.getdata(reset);
+}
+
 void do_read_mem(void)
 {
 	FILE *fmem = fopen("/proc/meminfo", "r");
 	for (int i = 0; i < MAX_MEM_ITEMS; i++)
 		fscanf(fmem, "%s %ld kB\n", mem[i].key, &mem[i].value);
 	fclose(fmem);
+}
+
+void do_print_to_log(void)
+{
+	char dbgmsgbuf[1025];
+
+	long diff = cur_timeval.tv_sec - start_timeval.tv_sec;
+	int hr = diff / 3600;
+	int min = diff % 3600 / 60;
+	int sec = diff % 60;
+	long ms = (cur_timeval.tv_usec - start_timeval.tv_usec) / 1000L;
+
+	sprintf(dbgmsgbuf, "%02d:%02d:%02d:%03ld : %4.3f  %4.3f  %4.3f  %4.3f  %4.3f  %4.3f  %4.3f  %4.3f\n", 
+		hr, min, sec, ms,
+		cpufreqs.getlow(), cpufreqs.gethigh(), 
+		cpufreqs.getmean(), 
+		cpufreqs.getelow(), cpufreqs.getehigh(),
+		track[K10TEMP1].val, track[K10TEMP1].low, track[K10TEMP1].high);
+	logger.debug(dbgmsgbuf);
 }
 
 void do_print(void)
@@ -167,6 +207,9 @@ void do_print(void)
 	clear();
 
 	attroff(A_BOLD);
+	attroff(A_BLINK);
+	attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
+
 	printw("up\t: ");
 	long diff = cur_timeval.tv_sec - start_timeval.tv_sec;
 	int day = diff / 3600 / 24;
@@ -183,6 +226,12 @@ void do_print(void)
 	printw("interval: ");
 	attron(A_BOLD);
 	printw("%s\n", dlyprt[cur_delay]);
+
+	attroff(A_BOLD);
+	printw("cfreq\t: %4.3f  %4.3f  %4.3f  %4.3f  %4.3f\n", 
+		cpufreqs.getlow(), cpufreqs.gethigh(), 
+		cpufreqs.getmean(),
+		cpufreqs.getelow(), cpufreqs.getehigh());
 
 	attroff(A_BOLD);
 	printw("\t    Us   Ni   Sy   Id   Iw   Ih   Is    S    G   Gn\n");
@@ -248,9 +297,21 @@ void do_print(void)
 	attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
 
 	printw("-----------------------------------------------------------\n"
-		   "press  'q' to quit            'k' to scroll up\n"
-		   "       'r' to reset           'l' to scroll down\n"
-		   "     'd/D' to change delay\n");
+		   "press  'q' to quit            'k/l' to scroll up/down\n"
+		   "       'r' to reset             'c' to clear log\n"
+		   "     'd/D' to change delay      'm' to ");
+	if (recording)
+	{
+		attron(A_BOLD | A_BLINK);
+		attron(COLOR_PAIR(COLORPAIR_ALERT));
+		printw("STOP\n");
+	}
+	else
+	{
+		attroff(A_BOLD);
+		attron(COLOR_PAIR(COLORPAIR_WHITE_BLACK));
+		printw("record\n");
+	}
 
 	refresh();
 }
@@ -264,7 +325,9 @@ int main(void)
 	sensors_init(conffile);
 	fclose(conffile);
 
+	logger.init();
 	track.initchips();
+	cpufreqs.init();
 
 	mainWindow = initscr();
 	start_color();
@@ -273,6 +336,7 @@ int main(void)
 	init_pair(COLORPAIR_RED_BLACK, COLOR_RED, COLOR_BLACK);
 	init_pair(COLORPAIR_YELLOW_BLACK, COLOR_YELLOW, COLOR_BLACK);
 	init_pair(COLORPAIR_CYAN_BLACK, COLOR_CYAN, COLOR_BLACK);
+	init_pair(COLORPAIR_ALERT, COLOR_WHITE, COLOR_RED);
 
 	gettimeofday(&start_timeval, NULL);
 

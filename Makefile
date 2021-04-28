@@ -1,11 +1,12 @@
 CC=g++
 CFLAGS=-g -Wall -Wextra -Wpedantic -Wno-deprecated
+LDFLAGS= -lpthread -lsensors -lncurses -lconfig++
 
-all: mysensors
+src = $(wildcard *.cpp *.h)
+obj = $(src:.cpp=.o)
 
-mysensors: mysensors.cpp mysensors.h track.cpp track.h
-	$(CC) $(CFLAGS) -c track.cpp
-	$(CC) $(CFLAGS) mysensors.cpp track.o -lpthread -lsensors -lncurses -lconfig++ -o mysensors
+mysensors: $(obj)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm mysensors *.o

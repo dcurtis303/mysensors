@@ -50,5 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Local test files
 enumfeature
 mysensors
+cpuinfo.stat
+mysensors.log

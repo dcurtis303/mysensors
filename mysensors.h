@@ -8,6 +8,7 @@
 #define	COLORPAIR_RED_BLACK		3
 #define	COLORPAIR_YELLOW_BLACK	4
 #define	COLORPAIR_CYAN_BLACK	5
+#define	COLORPAIR_ALERT			6
 
 struct CPU {
 	char name[8];
@@ -50,5 +51,7 @@ void *Worker(void*);
 
 void do_read_temps(char);
 void do_read_cpu(void);
+void do_read_cpufreq(char);
 void do_read_mem(void);
 void do_print(void);
+void do_print_to_log(void);

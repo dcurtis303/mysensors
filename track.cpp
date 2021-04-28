@@ -8,12 +8,20 @@
 using namespace std;
 using namespace libconfig;
 
+#include "logger.h"
+
+extern Logger logger;
+
 int Track::readcfg(void)
 {
     Config cfg;
 
     string const HOME = std::getenv("HOME") ? std::getenv("HOME") : ".";
     string cfgfilepath = HOME + "/.config/mysensors.cfg";
+
+    char dbgmsg[1024];
+    sprintf(dbgmsg, "using: %s\n", cfgfilepath.c_str());
+    logger.debug(dbgmsg);
 
     try
     {
