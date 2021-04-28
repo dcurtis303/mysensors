@@ -1,6 +1,5 @@
 CXX = g++
 CXXFLAGS = -g -Wall -Wextra -Wpedantic -Wno-deprecated
-LDFLAGS =
 LIBS = -lpthread -lsensors -lncurses -lconfig++
 
 BIN = mysensors
@@ -12,7 +11,7 @@ DEPENDS = $(OBJECTS:%.o=%.d)
 all: $(BIN)
 
 $(BIN): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
 
 -include $(DEPENDS)
 
@@ -20,4 +19,4 @@ $(BIN): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -MMD -c $< -o $@
 
 clean:
-	-rm -f $(OBJECTS) $(DEPENDS) mysensors
+	-rm -f $(OBJECTS) $(DEPENDS) $(BIN)
