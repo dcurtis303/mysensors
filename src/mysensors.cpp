@@ -27,7 +27,6 @@ bool recording = false;
 
 struct timeval start_timeval;
 struct timeval cur_timeval;
-long long mstime, mstime_last;
 
 WINDOW *mainWindow;
 int sensorListIndex = 0;
@@ -126,12 +125,9 @@ void do_read_cpu(void)
 	long tiowait, tirq, tsoftirq, tsteal;
 	long tguest, tguest_nice;
 
-	fstat = fopen("/proc/stat", "r");
-
-	mstime_last = mstime;
 	gettimeofday(&cur_timeval, NULL);
-	mstime = (((long long)cur_timeval.tv_sec) * 1000) + (cur_timeval.tv_usec / 1000);
 
+	fstat = fopen("/proc/stat", "r");
 	fscanf(fstat, "%s %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld",
 		   cpu[0].name, &tuser, &tnice, &tsystem, &tidle,
 		   &tiowait, &tirq, &tsoftirq, &tsteal,
