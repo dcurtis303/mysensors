@@ -48,7 +48,7 @@ void *PollKbd(void *info)
 		
 		ch = getchar();
 		if (ch == 'c')
-			logger.init();
+			logger.clear();
 		if (ch == 'm')
 			recording = !recording;
 		if (ch == 'k') // up arrow

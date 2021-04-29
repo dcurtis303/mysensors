@@ -7,6 +7,7 @@ class Logger
 
 public:
     void init(void);
+    void clear(void) { init(); };
     void debug(const char *message);
 };
 

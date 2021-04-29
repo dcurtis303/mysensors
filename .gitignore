@@ -56,3 +56,5 @@ enumfeature
 mysensors
 cpuinfo.stat
 mysensors.log
+
+.vscode/
