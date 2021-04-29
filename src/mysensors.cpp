@@ -176,11 +176,12 @@ void do_print_to_log(void)
 {
 	char dbgmsgbuf[1025];
 
-	long diff = cur_timeval.tv_sec - start_timeval.tv_sec;
-	int hr = diff / 3600;
-	int min = diff % 3600 / 60;
-	int sec = diff % 60;
-	long ms = (cur_timeval.tv_usec - start_timeval.tv_usec) / 1000L;
+	long sdiff = cur_timeval.tv_sec - start_timeval.tv_sec;
+	long udiff = cur_timeval.tv_usec - start_timeval.tv_usec;
+	long ms = (sdiff * 1000) + (udiff/1000.0) + 0.5; ms %= 1000;
+	int hr = sdiff / 3600;
+	int min = sdiff % 3600 / 60;
+	int sec = sdiff % 60;
 
 	sprintf(dbgmsgbuf, "%02d:%02d:%02d:%03ld : %4.3f  %4.3f  %4.3f  %4.3f  %4.3f  %4.3f  %4.3f  %4.3f\n", 
 		hr, min, sec, ms,
